@@ -1,0 +1,421 @@
+dbms_output.put_line(): This statement allows you to display any message or value.
+dbms_output.put_line('Welcome to PL/SQL');
+
+give it in command line
+
+set serveroutput on;
+
+begin
+	dbms_output.put_line('Welcome to PL/SQL');
+end;
+/
+
+
+-----------------------------------------------
+declare
+	company varchar2(30):='Hexaware';
+begin
+	dbms_output.put_line('Company is' || company);
+end;
+=====================================================
+declare
+	company varchar2(30):='&company';
+begin
+	dbms_output.put_line('Company is' || company);
+end;
+
+
+----------------------------------------------------
+*******************NOTES BY SIR******************
+
+
+set serveroutput on;
+
+begin
+   dbms_output.put_line('Welcome to PL/SQL');
+end;
+
+____________________________________________________________
+
+declare
+   company varchar2(30):='Hexaware';
+begin
+   dbms_output.put_line('Company is ' || company);
+end;
+
+____________________________________________________________________
+
+declare
+   company varchar2(30):='&company';
+begin
+   dbms_output.put_line('Company is ' || company);
+end;
+
+_______________________________________________________________________
+
+declare
+  a number := &a;
+  b number := &b; 
+  c number;
+begin
+   c := a + b;
+   dbms_output.put_line('Sum is ' || c);
+end;
+
+_________________________________________________________________________
+
+declare
+  maxsal number;
+begin
+   select max(sal) into maxsal from Emp;
+   dbms_output.put_line('Max Salary is ' || maxsal);
+end;
+
+____________________________________________________________________________
+
+-- display Ename, Sal of Employ whose Empno = 7900
+
+declare
+   eno number :=7900;
+   nam varchar2(30);
+   basic number;
+begin
+   select Ename, Sal into Nam,Basic from Emp where empno = eno;
+   dbms_output.put_line('Employ Name ' || nam);
+   dbms_output.put_line('Salary ' || basic);
+end;
+
+_____________________________________________________________________________
+
+declare
+   nam emp.ename%type := '&nam';
+   bas emp.sal%type;
+   dept emp.job%type;
+begin
+   select Sal, Job into Bas, Dept from Emp where ename=nam;
+   dbms_output.put_line('Employ Job is ' || dept);
+   dbms_output.put_line('Salary is ' || bas);
+end;
+
+_____________________________________________________________________________
+
+declare
+   n number :=&n;
+begin
+   if n >= 0 then
+     dbms_output.put_line('Positive No...');
+   else
+     dbms_output.put_line('Negative No...');
+   end if;
+end;
+
+____________________________________________________________________________
+
+declare 
+   n number := &n;
+begin
+   if n mod 2 = 0 then
+     dbms_output.put_line('Even Number...');
+   else 
+     dbms_output.put_line('Odd Number...');
+   end if;
+end;
+
+____________________________________________________________________________
+
+
+declare
+  maxsal number;
+begin
+   select max(sal) into maxsal from Emp;
+   if maxsal >= 10000 then
+         dbms_output.put_line('Good Salary...');
+   else 
+         dbms_output.put_line('Increment Expected...');
+   end if;
+end;
+____________________________________________________________________________
+
+declare
+   grade varchar2(1):='&grade';
+   result varchar2(30);
+begin
+   result := 
+     case grade
+       when 'A' then 'Excellent'
+       when 'B' then 'GOOD'
+       when 'C' then 'Satisfactory'
+       else 'No Such Grade '
+     end;
+     dbms_output.put_line('Grade is ' || result);
+end;
+_____________________________________________________________________________
+
+Create or replace procedure prcSayHello
+AS
+BEGIN
+        dbms_output.put_line('Welcome to PL/SQL Stored Procedure...');
+END;
+
+To Execute sp
+
+exec prcSayHello;
+
+
+___________________________________________________________________________
+
+Create or replace procedure prcTest
+AS
+BEGIN
+    declare
+        company varchar2(30):='Hexaware';
+        city varchar2(30):='Chennai';
+    begin
+        dbms_output.put_line('Company is ' || company);
+        dbms_output.put_line('City is  ' || city);
+    end;
+END;
+
+___________________________________________________________________________
+
+Create or replace procedure prcEmpMaxSal
+AS
+BEGIN
+    declare 
+        maxsal number;
+    begin
+       select max(sal) into maxsal from Emp;
+       dbms_output.put_line('Max Salary is ' || maxsal);
+    end;
+END;
+
+exec prcEmpMaxSal;
+______________________________________________________________________________
+
+Create or replace procedure prcEmploySearch(eno employ.empno%type)
+AS
+BEGIN
+     Declare
+        nam employ.name%type;
+        dpt employ.dept%type;
+        dsg employ.desig%type;
+        bas employ.basic%type;
+     begin
+        select Name, Dept, Desig, Basic into Nam, dpt, dsg, bas 
+		from Employ where empno = eno;
+        dbms_output.put_line('Employ No  ' || eno);
+        dbms_output.put_line('Employ Name ' || nam);
+        dbms_output.put_line('Department ' || dpt);
+        dbms_output.put_line('Designation ' || dsg);
+        dbms_output.put_line('Basic  ' || bas);
+     end;
+END;
+
+-- to execute exec prcEmploySearch(1);
+
+_______________________________________________________________________________________
+
+create or replace procedure prcEmployInsert
+(
+   eno employ.empno%type,
+   nam employ.name%type,
+   dpt employ.dept%type,
+   dsg employ.desig%type,
+   bas employ.basic%type
+)
+AS
+BEGIN
+    Insert into Employ(empno,name,dept,desig,basic) values(eno,nam,dpt,dsg,bas);
+END;
+
+-- to execute exec prcEmployInsert(6,'Nivetha','Sql','Expert',84882);
+
+__________________________________________________________________________________________
+
+Create or replace procedure prcEmployUpdate
+(
+ eno employ.empno%type,
+   nam employ.name%type,
+   dpt employ.dept%type,
+   dsg employ.desig%type,
+   bas employ.basic%type
+)
+AS
+BEGIN 
+     Update Employ set name = nam, dept = dpt, desig = dsg, basic = bas 
+	where empno = eno;
+     dbms_output.put_line('Record Updated...');
+END;
+exec prcEmployUpdate(6, 'Nivetha R','Dotnet','Manager',99999);
+
+___________________________________________________________________________________________
+
+Create or Replace procedure prcEmployDelete
+(
+   eno employ.empno%type
+)
+AS
+BEGIN
+   Delete from Employ where empno = eno;
+END;
+
+exec prcEmployDelete(6);
+
+--------------------------------------------------------
+
+IN,OUT PARAMETERS IN STORED PROCEDURES
+
+Create or replace procedure prcEmpSearchNew
+(
+   eno IN employ.empno%type,
+   nam  OUT employ.name%type,
+   dpt  OUT employ.dept%type,
+   dsg  OUT employ.desig%type,
+   bas  OUT employ.basic%type
+)
+AS
+BEGIN
+     select name, dept, desig, basic into nam, dpt,dsg,bas from Employ
+	where empno = eno;
+END;
+
+__________________________________________________________________________________
+
+Create or replace procedure prcEmpSearchOut
+(
+   eno employ.empno%type
+)
+AS
+BEGIN
+   declare 
+      nam employ.name%type;
+      dpt employ.dept%type;
+      dsg employ.desig%type;
+      bas employ.basic%type;
+   begin
+       prcEmpSearchNew(eno,nam,dpt,dsg,bas);
+       dbms_output.put_line('Name  ' ||nam);
+       dbms_output.put_line('Department ' || dpt);
+       dbms_output.put_line('Designation ' || dsg);
+       dbms_output.put_line('Basic  ' || bas);     
+   end;
+END;
+
+exec prcEmpSearchOut(3);
+
+________________________________________________________________________________
+
+
+Create or Replace procedure prcEmpSal
+(
+   eno IN employ.empno%type,
+   bas OUT employ.basic%type
+)
+AS
+BEGIN
+    select basic into bas from Employ where empno = eno;
+END;
+_________________________________________________________________________________________
+
+Create or replace procedure prcEmpOut(eno employ.empno%type)
+AS
+BEGIN
+     declare
+         bas employ.basic%type;
+     begin
+         prcEmpSal(eno,bas);
+         dbms_output.put_line('Salary is ' || bas);
+     end;
+END;
+
+exec prcEmpOut(1);
+
+__________________________________________________________________________________________
+
+create or replace procedure prcCommission
+(
+   sal IN employ.basic%type,
+   comm OUT number
+)
+as
+begin
+     if sal >= 10000 AND sal <= 80000 then
+        comm:=15000;
+     end if;
+     if sal > 80000 then
+        comm:=18000;
+     end if;
+end;
+
+______________________________________________________________________________
+
+Create or replace procedure prcCommisionOut
+(
+   sal employ.basic%type
+)
+AS
+BEGIN
+    Declare
+      comm number;
+    begin
+        prcCommission(sal,comm);
+        dbms_output.put_line('Commission is ' ||comm);
+    end;
+END;
+
+exec prcCommisionOut(79999);
+--------------------------------------------------------
+
+create or replace procedure prcSal
+(
+eno in emp.empno%type,
+name out emp.ename%type, 
+jobs out emp.job%type, 
+salary out emp.sal%type
+)
+as
+begin
+	select ename,job,sal into name,jobs,salary from emp where empno=eno;
+end;
+
+create or replace procedure prcSalOut(eno emp.empno%type)
+as 
+begin
+ declare 
+	name emp.ename%type;
+	jobs emp.job%type;
+	salary emp.sal%type;
+ begin
+	prcSal(eno,name,jobs,salary);
+	dbms_output.put_line('Empno '||eno);
+	dbms_output.put_line('Empname '||name);
+	dbms_output.put_line('Job '||jobs);
+	dbms_output.put_line('Salary '||salary);
+ end;
+end;
+
+
+
+---------------------------------------------------
+
+Create or replace procedure prcAccountCreate
+(
+   fname accounts.firstName%type,
+   lname accounts.lastName%type,
+   cit accounts.city%type,
+   st accounts.state%type,
+   amt accounts.amount%type,
+   cf accounts.cheqFacil%type,
+   actype accounts.AccountType%type
+)
+AS
+BEGIN
+      Declare
+	accno accounts.accountNo%type;
+      begin
+         select case when max(accountNo) IS NULL THEN 1 else 
+		max(accountNo)+1 end into accno from Accounts;
+         Insert into Accounts(AccountNo,FirstName,lastName,City,State,Amount,CheqFacil,AccountType) values(accno,fname,lname,cit,st,amt,cf,actype);
+	dbms_output.put_line('Account Created with Accno ' ||accno);
+      end;
+END;
