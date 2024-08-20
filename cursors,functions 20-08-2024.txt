@@ -1,0 +1,326 @@
+Create or replace function fnTax(salary number) return number
+AS
+BEGIN
+	return salary * 0.03;
+END;
+
+select fnTax(10000) from dual;
+
+select empno, ename, job, sal, fnTax(sal) "Tax" from Emp;
+
+select empno, ename, job, sal, fnTax(sal) "Tax", sal-fntax(sal) "TakeHome" from Emp;
+
+Create or replace function fnCommision(comm number) return varchar2
+AS
+result varchar(30);
+BEGIN
+    if comm is null then
+	result:='No Commission';
+	    else
+	return 'Commission is there';
+    end if;
+    return result;
+END;
+
+select empno, ename,sal,comm,fncommision(comm) from emp;
+
+
+Create or replace function fnMgrShow(mgr number) return varchar2
+AS
+result varchar2(30);
+begin
+   if mgr is null then
+	result:='No Manager for You';
+   else 
+	result:='Manager is there for you...';
+   end if;
+   return result;
+end;
+_____________________________________________________________________________________________
+
+Bank Project using Functions 
+_____________________________________________________________________________________________
+
+Create or replace function fnGenearteAccountNo return number
+AS
+res number;
+BEGIN
+	select case when max(accountNo) IS NULL THEN 1 else 
+	  max(accountNo)+1 end into res from Accounts;
+	return res;
+END;
+
+create or replace procedure prcAccountCreate
+(
+Fname Accounts.FirstName%type,
+Lname Accounts.LastName%type,
+Cit Accounts.City%type,
+Stat Accounts.State%type,
+Amt Accounts.Amount%type,
+Cf Accounts.CheqFacil%type,
+Actype Accounts.AccountType%type	
+)
+AS
+BEGIN
+    declare 
+      accno number;
+    begin
+        select fnGenearteAccountNo() into accno from dual; 
+        Insert into Accounts(AccountNo,FirstName,LastName,City,State,Amount,
+	   CheqFacil,AccountType) values(accno,Fname,Lname,Cit,Stat,Amt,Cf,Actype);
+       dbms_output.put_line('Account Created Successfully...');
+	EXCEPTION
+	   WHEN DUP_VAL_ON_INDEX THEN 
+	     dbms_output.put_line('Account No Already exists...Please change the Code...');
+    end;
+END;
+
+exec prcAccountCreate('Swetha','Singh','Delhi','UP',84224,'Yes','Savings');
+
+_______________________________________________________________________________________________
+
+Create or replace function fnAccountNoCheck(accno number) return varchar2
+result varchar2(30);
+AS
+BEGIN
+	select * from Accounts where AccountNo = accno;
+	
+        Exception
+END;
+
+_______________________________________________________________________________________
+
+create or replace function fnChkBal(
+                                     Accno Accounts.AccountNo%type,
+                                     wamt number
+                                    ) return number
+AS
+amt accounts.amount%type;
+res number;
+begin
+     select Amount into amt from accounts where accountNo=accno;
+     if amt-wamt >= 0 then
+       res:=0;
+     else
+       res:=1;
+     end if;
+     return res;
+end;
+
+_________________________________________________________________________________________
+
+Create Or replace Procedure PrcAmountWithdraw(AccNo Accounts.AccountNo%type,
+				WithAmt Accounts.Amount%type)
+AS
+BEGIN 
+    declare 
+        Amt Accounts.Amount%type;
+	res1 number;
+        res2 number;
+	begin 
+		select fnAccountNoCheck(Accno) into res1 from dual;
+                if res1=0 then 
+                    select fnchkBal(AccNo,WithAmt) into res2 from dual;
+                    if res2=0 then 
+                          Update Accounts set Amount=Amount-WithAmt WHERE AccountNo=Accno;
+	Insert into Trans(AccountNo,TranAmount,TranType)
+			values(AccNo,WithAmt,'D');
+                    else 
+                      dbms_output.put_line('*** Insufficient Balance ***');
+                    end if;
+                else 
+                  dbms_output.put_line('AccountNo Not Found...');
+                end if;
+       end;
+END;
+_____________________________________________________________________________________________
+
+declare
+ cursor cursor_emp is select empno, ename, job, sal from emp;
+eno emp.empno%type;
+nam emp.ename%type;
+jb emp.job%type;
+bas emp.sal%type;
+begin
+    open cursor_emp;
+    loop
+	fetch cursor_emp into eno, nam, jb, bas;
+	dbms_output.put_line('Employ No ' || eno || '  Employ Name ' || nam
+  || '  Job ' || jb || '  Salary ' || bas);
+	exit when cursor_emp%NOTFOUND;
+    end loop;
+end;
+
+
+Create or replace procedure prcEmpShowAll
+AS
+BEGIN
+declare
+ cursor cursor_emp is select empno, ename, job, sal from emp;
+eno emp.empno%type;
+nam emp.ename%type;
+jb emp.job%type;
+bas emp.sal%type;
+begin
+    open cursor_emp;
+    loop
+	fetch cursor_emp into eno, nam, jb, bas;
+	dbms_output.put_line('Employ No ' || eno || '  Employ Name ' || nam
+  || '  Job ' || jb || '  Salary ' || bas);
+	exit when cursor_emp%NOTFOUND;
+    end loop;
+end;
+END;
+
+exec prcEmpShowAll;
+
+Create or replace procedure prcEmployShowAll
+AS
+BEGIN
+   Declare
+	cursor cursor_employ is select empno, name, dept, desig, basic from Employ;
+	eno employ.empno%type;
+	nam employ.name%type;
+	dpt employ.dept%type;
+	dsg employ.desig%type;
+	bas employ.basic%type;
+   begin
+      Open Cursor_Employ;
+      loop
+	fetch cursor_employ into eno, nam, dpt, dsg, bas;
+	dbms_output.put_line('Employ No ' || eno || ' Name ' || nam || ' Department ' 
+		|| dpt || ' Designation ' || dsg || ' Salary ' || bas);
+        exit when cursor_employ%NOTFOUND;
+      end loop;
+   end;
+END;
+
+Create or replace procedure prcAccountShowAll
+AS
+BEGIN
+	declare
+	  cursor cursor_accounts is select accountNo, FirstName, LastName, City, State,
+		Amount, CheqFacil, AccountType from Accounts;
+	  accno Accounts.Accno%type;
+	  fname Accounts.FirstName%type;
+	  lname Accounts.LastName%type;
+	  cit Accounts.City%type;
+	  st Accounts.State%type;
+	  amt Accounts.Amount%type;
+	  cf Accounts.CheqFacil%type;
+	  acType Accounts.AccountType%type;
+	  totalRows number;
+
+	  Open cursor_accounts;
+	  loop
+	     fetch cursor_accounts into accno,fname,lname,cit,st,amt,cf,acType;
+		dbms_output.put_line('Account No ' ||accno|| ' FirstName ' ||fname ||
+		' Last Name ' ||lname || ' City ' || cit || ' State ' || st ||
+	        ' Amount ' || amt || ' Cheq Facil ' || cf || ' Account Type ' || acType);
+	     exit when cursor_accounts%NOTFOUND;
+	  end loop;
+	close cursor_accounts;
+END;
+
+___________________________________________________________
+
+
+Create or replace procedure prcAccountShowAll
+AS
+BEGIN
+	declare
+	  cursor cb is select accountNo, FirstName, LastName from Accounts;
+	  accno Accounts.AccountNo%type;
+	  fname Accounts.FirstName%type;
+	  lname Accounts.LastName%type;
+	 
+	  Open cb;
+	  loop
+	     fetch cb into accno,fname,lname;
+		dbms_output.put_line('Account No ' ||accno|| ' FirstName ' ||fname ||
+		' Last Name ' ||lname);
+	     exit when cb%NOTFOUND;
+	  end loop;
+END;
+
+
+Create or replace procedure prcAccountShow
+AS
+BEGIN
+declare
+ cursor cursor_acc is select AccountNo,FirstName,LastName,Amount from Accounts;
+accno Accounts.accountNo%type;
+fname Accounts.firstName%type;
+lname Accounts.lastName%type;
+bas Accounts.Amount%type;
+rowcount number;
+begin
+    select count(*) into rowcount from Accounts;
+    open cursor_acc;
+    loop
+	fetch cursor_acc into accno,fname,lname,bas;
+	dbms_output.put_line('Account No ' || accno || ' FirstName ' ||fname || 
+		' Last Name ' || lname || ' Amount ' || bas);
+	exit when cursor_acc%ROWCOUNT=rowcount;
+    end loop;
+end;
+END;
+
+
+Create or replace procedure prcAccountShow
+AS
+BEGIN
+declare
+ cursor cursor_acc is select AccountNo,FirstName,LastName,Amount from Accounts;
+accno Accounts.accountNo%type;
+fname Accounts.firstName%type;
+lname Accounts.lastName%type;
+bas Accounts.Amount%type;
+rowcount number;
+begin
+    select count(*) into rowcount from Accounts;
+    open cursor_acc;
+    loop
+	fetch cursor_acc into accno,fname,lname,bas;
+	dbms_output.put_line('Account No ' || accno || ' FirstName ' ||fname || 
+		' Last Name ' || lname || ' Amount ' || bas);
+	exit when fname='Swetha';
+	-- exit when cursor_acc%ROWCOUNT=rowcount;
+    end loop;
+end;
+END;
+
+_________________________________________________________________________________________
+
+Create or replace procedure prcAccountShow
+AS
+BEGIN
+declare
+ cursor cursor_acc is select AccountNo,FirstName,LastName,Amount from Accounts;
+
+begin
+    for rec in cursor_acc   
+    loop
+	dbms_output.put_line('Account No ' || rec.accountNo || ' FirstName ' ||rec.firstName || 
+		' Last Name ' || rec.lastName || ' Amount ' || rec.Amount);
+	    end loop;
+end;
+END;
+_________________________________________________________________________________________
+
+Create or replace procedure prcEmployShowAll
+AS
+BEGIN
+   Declare
+	cursor cursor_employ is select empno, name, dept, desig, basic from Employ;
+   begin
+     for rec in cursor_employ
+      loop
+	if rec.dept='Java' then
+	  update Employ set basic=basic+1000;
+	end if;
+	dbms_output.put_line('Employ No ' || rec.empno || ' Name ' || rec.name || ' Department ' 
+		|| rec.dept || ' Designation ' || rec.desig || ' Salary ' || rec.basic);
+       end loop;
+   end;
+END;
